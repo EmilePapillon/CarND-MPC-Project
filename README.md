@@ -4,7 +4,7 @@ Self-Driving Car Engineer Nanodegree Program
 ---
 
 1. The ModelStudent describes their model in detail. This includes the state, actuators and update equations.The ideal path (also called waypoints/reference line or “shape of the road ahead”)  is provided by the simulator as a set of points but could be extracted from a video image using computer vision or extracted from map data using localization algorithm. The algorithm uses these waypoints to generate a polynomial using polyfit. This generates a set of coefficient. Here a third order polynomial has been used as it is sufficient for the complexity of our road. The MPC takes the state of the vehicle and the coefficients of the polynomial describing the shape of the road ahead and optimizes the predicted path using actuator values that have been constrained to realistic value (for example, the .steerinng actuator cannot steer more than 25 degrees.) The model implemented was the following:  ```cpp
-x[t] = x[t-1] + v[t-1] + cos(psi[t-1]) * dt;y[t] + y[t-1] + v[t-1] * sin(psi[t-1]) * dt;
+x[t] = x[t-1] + v[t-1] * cos(psi[t-1]) * dt;y[t] + y[t-1] + v[t-1] * sin(psi[t-1]) * dt;
 psi[t] = psi[t-1] + v[t-1] / Lf * delta[t-1] * dt;v[t] = v[t-1] + a[t-1] * dt;
 cte[t] = f(x[t-1]) - y[t-1] + v[t-1] * sin(epsi[t-1]) * dt;
 epsi[t] = psi[t] - psides[t-1] + v[t-1] * delta[t-1] / Lf * dt;

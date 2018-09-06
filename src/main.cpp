@@ -85,8 +85,11 @@ int main() {
         string event = j[0].get<string>();
         if (event == "telemetry") {
           // j[1] is the data JSON object
+
+          //get the shape of the road ahead
           vector<double> ptsx = j[1]["ptsx"];
           vector<double> ptsy = j[1]["ptsy"];
+          //get the current state of the vehicle : position, orientation and velocity
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
@@ -99,7 +102,7 @@ int main() {
           *
           */
 
-          // Transforms coordinates to the car's referential
+          // Transforms coordinates of the road shape to the car's referential
           Eigen::VectorXd ptsx_prime = Eigen::VectorXd(ptsx.size());
           Eigen::VectorXd ptsy_prime = Eigen::VectorXd(ptsx.size());
           for (size_t i = 0; i < ptsx.size(); i++ ) 
@@ -108,16 +111,22 @@ int main() {
             ptsy_prime(i) = (ptsx[i] - px)*sin(-psi ) + (ptsy[i] - py)*cos(-psi);
           }
 
-          // Fit polynomial to the points.
+          // Fit polynomial to the points describing the road shape.
           auto coeffs = polyfit(ptsx_prime, ptsy_prime, 3);
-          double cte = polyeval(coeffs, 0);  // px = 0, py = 0
-          double epsi = -atan(coeffs[1]);  // p
+
+          // the cross track error is the value of the waypoints/reference polynomial at (px, py) = (0,0)  -- at the vehicle
+          double cte = polyeval(coeffs, 0);  
+          // the error on the angle is the value of the tangential angle of the polynomial at (px, py) = (0,0)
+          double epsi = -atan(coeffs[1]); 
 
           double steer_value = j[1]["steering_angle"];
           double throttle_value = j[1]["throttle"];
 
+          //x,y, psi are set to 0 because we are in the vehicle frame of reference and this is always zero. 
           Eigen::VectorXd state(6);
           state << 0, 0, 0, v, cte, epsi;
+
+          //solve using MPC model 
           auto vars = mpc.Solve(state, coeffs);
           steer_value = vars[0];
           throttle_value = vars[1];
